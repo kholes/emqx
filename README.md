@@ -18,7 +18,7 @@ docker compose ps
 View logs:
 
 ```bash
-docker compose logs -f emqx1
+docker compose logs -f emqx
 ```
 
 Stop service:
@@ -83,14 +83,28 @@ In the current compose setup:
 
 This means MQTT sessions can be retained for up to 7 days (depending on client behavior).
 
+## Auto Start After VM Reboot
+
+Compose is configured with:
+
+- `restart: always`
+
+So the EMQX container will auto-start after Docker daemon is up.  
+Make sure Docker itself starts on boot (Linux systemd):
+
+```bash
+sudo systemctl enable docker
+sudo systemctl restart docker
+```
+
 ## Troubleshooting
 
 - No traffic in MQTT Explorer:
-  - make sure `docker compose ps` shows container `emqx1` is running
+  - make sure `docker compose ps` shows container `emqx` is running
   - make sure you connect to `localhost:1883` (not another host)
   - make sure username/password are correct
   - click reconnect in MQTT Explorer after container restart
 - Login failed:
   - check the `authn-users.json` content again
   - restart service: `docker compose up -d`
-  - check auth logs: `docker compose logs emqx1`
+  - check auth logs: `docker compose logs emqx`

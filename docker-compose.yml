@@ -2,7 +2,12 @@ services:
   emqx:
     image: emqx/emqx:5.10.0
     container_name: emqx
-    restart: unless-stopped
+    restart: always
+    user: "0:0"
+    command:
+      - /bin/sh
+      - -c
+      - chown -R 1000:1000 /opt/emqx/data /opt/emqx/log && exec /usr/bin/docker-entrypoint.sh emqx foreground
 
     environment:
       - EMQX_NODE_NAME=emqx@emqx
