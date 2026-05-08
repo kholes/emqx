@@ -1,0 +1,100 @@
+# services:
+#   emqx1:
+#     image: emqx/emqx:5
+#     container_name: emqx
+#     restart: unless-stopped
+#     environment:
+#       - "EMQX_NODE_NAME=emqx@node1.emqx.com"
+# #    - "EMQX_CLUSTER__DISCOVERY_STRATEGY=static"
+# #    - "EMQX_CLUSTER__STATIC__SEEDS=[emqx@node1.emqx.com,emqx@node2.emqx.com]"
+#     healthcheck:
+#       test: ["CMD", "/opt/emqx/bin/emqx", "ctl", "status"]
+#       interval: 10s
+#       timeout: 10s
+#       retries: 6
+#       start_period: 30s
+#     networks:
+#       emqx-bridge:
+#         aliases:
+#           - node1.emqx.com
+#     ports:
+#       - 1883:1883
+#       - 8083:8083
+#       - 8084:8084
+#       - 8883:8883
+#       - 18083:18083
+#     volumes:
+#       - ./emqx1_data:/opt/emqx/data
+
+# #  emqx2:
+# #    image: emqx/emqx-enterprise:6.0.0
+# #    container_name: emqx2
+# #    environment:
+# #    - "EMQX_NODE_NAME=emqx@node2.emqx.com"
+# #    - "EMQX_CLUSTER__DISCOVERY_STRATEGY=static"
+# #    - "EMQX_CLUSTER__STATIC__SEEDS=[emqx@node1.emqx.com,emqx@node2.emqx.com]"
+# #    healthcheck:
+# #      test: ["CMD", "/opt/emqx/bin/emqx", "ctl", "status"]
+# #      interval: 5s
+# #      timeout: 25s
+# #      retries: 5
+# #    networks:
+# #      emqx-bridge:
+# #        aliases:
+# #        - node2.emqx.com
+# #    # volumes:
+# #    #   - $PWD/emqx2_data:/opt/emqx/data
+
+# networks:
+#   emqx-bridge:
+#     driver: bridge
+
+services:
+  emqx1:
+    image: emqx/emqx:5.10.0
+    container_name: emqx1
+    restart: unless-stopped
+
+    environment:
+      - EMQX_NODE_NAME=emqx@emqx1
+      - EMQX_MQTT__SESSION_EXPIRY_INTERVAL=7d
+      - EMQX_AUTHENTICATION__1__ENABLE=true
+      - EMQX_AUTHENTICATION__1__MECHANISM=password_based
+      - EMQX_AUTHENTICATION__1__BACKEND=built_in_database
+      - EMQX_AUTHENTICATION__1__USER_ID_TYPE=username
+      - EMQX_AUTHENTICATION__1__BOOTSTRAP_FILE=/opt/emqx/etc/authn-users.json
+      - EMQX_AUTHORIZATION__NO_MATCH=allow
+      - EMQX_AUTHORIZATION__SOURCES=[]
+
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/emqx/bin/emqx ctl status || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 6
+      start_period: 30s
+
+    ports:
+      - "1883:1883"
+      - "8083:8083"
+      - "8084:8084"
+      - "8883:8883"
+      - "18083:18083"
+
+    volumes:
+      - ./emqx1_data/data:/opt/emqx/data
+      - ./emqx1_data/log:/opt/emqx/log
+      - ./authn-users.json:/opt/emqx/etc/authn-users.json:ro
+
+    ulimits:
+      nofile:
+        soft: 10240
+        hard: 10240
+
+    networks:
+      emqx-bridge:
+        aliases:
+          - emqx1
+
+networks:
+  emqx-bridge:
+    driver: bridge
